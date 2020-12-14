@@ -49,6 +49,7 @@ public:
 
 					unsigned long long value = bitset<36>(valueBinary).to_ullong();
 
+					// If it isn't in the memory, put it in, otherwise overwrite existing value in map
 					if (memory.find(key) != memory.end()) {
 						memory.find(key)->second = value;
 					}
@@ -61,6 +62,7 @@ public:
 					string key = bitset<36>(stoi(x.substr(keyBegin, keyEnd - keyBegin))).to_string();
 					int value = stoi(x.substr(valueBegin));
 
+					// Find out number of X (for max number of possible combinations)
 					int numberofx = 0;
 					for (char c : mask) {
 						if (c == 'X') {
@@ -68,6 +70,7 @@ public:
 						}
 					}
 
+					// Go through each character in the mask, if it's an X or a 1, replace the Key
 					for (int i = 0; i < mask.length(); i++) {
 						if (mask.at(i) == 'X' || mask.at(i) == '1') {
 							key[i] = mask.at(i);
@@ -75,13 +78,14 @@ public:
 					}
 
 					vector<string> allCombos;
-					combinations(numberofx, allCombos, 0);
-
+					combinations(numberofx, allCombos, 0); // Get all possible combinations and add them to the allCombos vector
 
 					for (int i = 0; i < allCombos.size(); i++) {
+						// Make a copy of key to avoid editing original
 						string newAddress = key;
 						int xCount = 0;
 
+						// Replace the X in the address with the corresponding digits from the combinations vector
 						for (int j = 0; j < newAddress.length(); j++) {
 							if (newAddress.at(j) == 'X') {
 								newAddress.at(j) = allCombos.at(i).at(xCount);
@@ -91,6 +95,7 @@ public:
 
 						long long int newAddressDec = bitset<36>(newAddress).to_ullong();
 
+						// If it isn't in the memory, put it in, otherwise overwrite existing value in map
 						if (memory.find(newAddressDec) != memory.end()) {
 							memory.find(newAddressDec)->second = value;
 						}
@@ -102,6 +107,7 @@ public:
 			}
 		}
 
+		// Sum them up and print them out!
 		map<unsigned long long, unsigned long long>::iterator it;
 		unsigned long long total = 0;
 
