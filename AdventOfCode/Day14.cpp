@@ -9,16 +9,24 @@ public:
 	Day14() : Day("inputFiles/day14.txt") {}
 
 	void part1() {
+		applyMask();
+	}
 
+	void part2() {
+		applyMask(true);
+	}
+
+	void applyMask(bool part2 = false) {
 		string mask = "";
 		string maskToken = "mask = ";
-		map<int, unsigned long long> memory;
+		map<unsigned long long, unsigned long long> memory;
 
 		for (string x : lines) {
 			if (x.substr(0, 3) == "mas") {
 				mask = x.substr(x.find(maskToken) + maskToken.length());
 			}
 			else {
+				// Get Key and Value Locations
 				int keyBegin, keyEnd, valueBegin;
 				string keyToken = "mem[";
 				string valueToken = " = ";
@@ -27,32 +35,74 @@ public:
 				keyEnd = x.find("]");
 				valueBegin = x.find(valueToken) + valueToken.length();
 
-				int key = stoi(x.substr(keyBegin, keyEnd - keyBegin));
-				string valueBinary = bitset<36>(stoi(x.substr(valueBegin))).to_string();
+				if (!part2) {
+					// Key and Value Values
+					int key = stoi(x.substr(keyBegin, keyEnd - keyBegin));
+					string valueBinary = bitset<36>(stoi(x.substr(valueBegin))).to_string();
 
-				// apply mask
+					// Apply Mask
+					for (int i = 0; i < mask.length(); i++) {
+						if (mask.at(i) != 'X') {
+							valueBinary[i] = mask.at(i);
+						}
+					}
 
-				for (int i = 0; i < mask.length(); i++) {
-					if (mask.at(i) != 'X') {
-						valueBinary[i] = mask.at(i);
+					unsigned long long value = bitset<36>(valueBinary).to_ullong();
+
+					if (memory.find(key) != memory.end()) {
+						memory.find(key)->second = value;
+					}
+					else {
+						memory.insert(pair<unsigned long long, unsigned long long>(key, value));
 					}
 				}
-
-				unsigned long long value = bitset<36>(valueBinary).to_ullong();
-				cout << value << endl;
-
-				if (memory.find(key) != memory.end()) {
-					memory.find(key)->second = value;
-				}
 				else {
-					memory.insert(pair<int, unsigned long long>(key, value));
-				}
+					// Key and Value
+					string key = bitset<36>(stoi(x.substr(keyBegin, keyEnd - keyBegin))).to_string();
+					int value = stoi(x.substr(valueBegin));
 
+					int numberofx = 0;
+					for (char c : mask) {
+						if (c == 'X') {
+							numberofx++;
+						}
+					}
+
+					for (int i = 0; i < mask.length(); i++) {
+						if (mask.at(i) == 'X' || mask.at(i) == '1') {
+							key[i] = mask.at(i);
+						}
+					}
+
+					vector<string> allCombos;
+					combinations(numberofx, allCombos, 0);
+
+
+					for (int i = 0; i < allCombos.size(); i++) {
+						string newAddress = key;
+						int xCount = 0;
+
+						for (int j = 0; j < newAddress.length(); j++) {
+							if (newAddress.at(j) == 'X') {
+								newAddress.at(j) = allCombos.at(i).at(xCount);
+								xCount++;
+							}
+						}
+
+						long long int newAddressDec = bitset<36>(newAddress).to_ullong();
+
+						if (memory.find(newAddressDec) != memory.end()) {
+							memory.find(newAddressDec)->second = value;
+						}
+						else {
+							memory.insert(pair<long long int, unsigned long long>(newAddressDec, value));
+						}
+					}
+				}
 			}
 		}
 
-		map<int, unsigned long long>::iterator it;
-
+		map<unsigned long long, unsigned long long>::iterator it;
 		unsigned long long total = 0;
 
 		for (it = memory.begin(); it != memory.end(); it++) {
@@ -60,9 +110,19 @@ public:
 		}
 
 		cout << total << endl;
-		
+
 	}
 
-	void part2() {
+	void combinations(int n, vector<string> &all, int i, string current = "") {
+		if (i == n) {
+			all.emplace_back(current);
+			return;
+		}
+
+		current.append("0");
+		combinations(n, all, i + 1, current);
+
+		current.at(i) = '1';
+		combinations(n, all, i + 1, current);
 	}
 };
